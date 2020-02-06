@@ -111,7 +111,7 @@ class Navigation extends React.Component {
     super(props);
     this.state = {
       user: undefined,
-      drawerOpen: true
+      drawerOpen: false
     };
     firebase.auth().onAuthStateChanged(this.authStateChanged);
   }
@@ -198,6 +198,7 @@ class Navigation extends React.Component {
                     anchorEl={this.state.dropdownEl}
                     open={!!this.state.dropdownEl}
                     onClose={this.handleCloseAccountMenu}
+                    onClick={this.handleCloseAccountMenu}
                   >
                     <MenuItem onClick={this.handleAccountRoute}>
                       Account
