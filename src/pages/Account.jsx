@@ -42,6 +42,14 @@ class Account extends React.Component {
     this.getEvents();
   }
 
+  getProblems = async () => {
+      var userRef = firebase.firestore().collection("users").doc(this.props.user.uid)
+      var problems = firebase.firestore().collection("problems").where("createdBy", "==", userRef);
+      problems.get().then(snapshot => {
+          
+      })
+  }
+
   getEvents = async () => {
     firebase
       .firestore()
