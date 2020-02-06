@@ -10,8 +10,12 @@ import {
   Paper,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  ListItemIcon,
+  Badge
 } from "@material-ui/core";
+
+import { getProblemIcon } from "../components/Label";
 
 const styles = theme => ({
   root: {
@@ -37,18 +41,38 @@ class Account extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      events: []
+      events: [],
+      problems: []
     };
     this.getEvents();
+    this.getProblems();
   }
 
   getProblems = async () => {
-      var userRef = firebase.firestore().collection("users").doc(this.props.user.uid)
-      var problems = firebase.firestore().collection("problems").where("createdBy", "==", userRef);
-      problems.get().then(snapshot => {
-          
-      })
-  }
+    var userRef = firebase
+      .firestore()
+      .collection("users")
+      .doc(this.props.user.uid);
+    var problems = firebase
+      .firestore()
+      .collection("problems")
+      .where("createdBy", "==", userRef);
+    problems.onSnapshot(snapshot => {
+      console.log(snapshot.docs.length);
+      var p = snapshot.docs.map(prob => {
+        var x = prob.data();
+        x.key = prob.id;
+        if (x.comments) {
+          x.commentCount = x.comments.length;
+        }
+        return x;
+      });
+
+      this.setState({
+        problems: p
+      });
+    });
+  };
 
   getEvents = async () => {
     firebase
@@ -103,8 +127,26 @@ class Account extends React.Component {
           <Grid item xs={12} sm={6}>
             <Paper className={classes.paper}>
               <Typography component="h3" variant="h6">
-                Test
+                Reported Problems
               </Typography>
+              <List>
+                {this.state.problems.map(problem => (
+                  <ListItem button key={problem.key}>
+                    <ListItemIcon>
+                      <Badge
+                        badgeContent={problem.commentCount || 0}
+                        color="primary"
+                      >
+                        {getProblemIcon(problem.type)}
+                      </Badge>
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={problem.title}
+                      secondary={problem.team}
+                    ></ListItemText>
+                  </ListItem>
+                ))}
+              </List>
             </Paper>
           </Grid>
         </Grid>
