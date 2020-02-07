@@ -15,6 +15,8 @@ import {
   Badge
 } from "@material-ui/core";
 
+import { Link as RouterLink } from "react-router-dom";
+
 import { getProblemIcon } from "../components/Label";
 
 const styles = theme => ({
@@ -131,7 +133,12 @@ class Account extends React.Component {
               </Typography>
               <List>
                 {this.state.problems.map(problem => (
-                  <ListItem button key={problem.key}>
+                  <ListItem
+                    button
+                    key={problem.key}
+                    component={RouterLink}
+                    to={`/problems/${problem.key}`}
+                  >
                     <ListItemIcon>
                       <Badge
                         badgeContent={problem.commentCount || 0}

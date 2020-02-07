@@ -6,8 +6,15 @@ import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import AccountCircleOutlinedIcon from "@material-ui/icons/AccountCircleOutlined";
+import EventIcon from "@material-ui/icons/Event";
+import ReportProblemIcon from "@material-ui/icons/ReportProblem";
 
-import { Switch, Route, BrowserRouter } from "react-router-dom";
+import {
+  Switch,
+  Route,
+  BrowserRouter,
+  Link as RouterLink
+} from "react-router-dom";
 
 import { mainListItems, secondaryListItems } from "./listItems";
 import {
@@ -25,6 +32,7 @@ import {
   Fade,
   CircularProgress
 } from "@material-ui/core";
+import { SpeedDial, SpeedDialIcon, SpeedDialAction } from "@material-ui/lab";
 import Login from "./pages/Login";
 import * as firebase from "firebase/app";
 import "firebase/auth";
@@ -103,6 +111,11 @@ const styles = theme => ({
     flexGrow: 1,
     height: "100vh",
     overflow: "auto"
+  },
+  actionsDot: {
+    position: "fixed",
+    bottom: theme.spacing(2),
+    right: theme.spacing(2)
   }
 });
 
@@ -111,14 +124,26 @@ class Navigation extends React.Component {
     super(props);
     this.state = {
       user: undefined,
-      drawerOpen: false
+      drawerOpen: false,
+      actionsOpen: false
     };
     firebase.auth().onAuthStateChanged(this.authStateChanged);
+    firebase
+      .firestore()
+      .enablePersistence()
+      .catch(err => {
+        if (err.code == "failed-precondition") {
+          console.warn(
+            "Multiple tabs open. Can only be enabled in one tab at a time"
+          );
+        } else if (err.code == "unimplemented") {
+          console.warn("Not enough browser support for persistence.");
+        }
+      });
   }
 
   authStateChanged = user => {
     if (user) {
-      console.log(user);
       this.setState({ user });
     } else {
       console.log("No user signed in");
@@ -155,6 +180,33 @@ class Navigation extends React.Component {
     this.handleCloseAccountMenu();
   };
 
+  handleToggleActions = () => {
+    this.setState({
+      actionsOpen: !this.state.actionsOpen
+    });
+  };
+
+  handleCloseAction = () => {
+    this.setState({
+      actionsOpen: false
+    });
+  };
+
+  actions = [
+    {
+      icon: <EventIcon />,
+      name: "Join Event",
+      action: () => {},
+      link: "/account/addEvent"
+    },
+    {
+      icon: <ReportProblemIcon />,
+      name: "Add Problem",
+      action: () => {},
+      link: "/problems/add"
+    }
+  ];
+
   render() {
     const { classes } = this.props;
     return (
@@ -186,13 +238,19 @@ class Navigation extends React.Component {
                   <Typography variant="h6" className={classes.title}>
                     CSA Notepad
                   </Typography>
-                  <IconButton onClick={this.handleOpenAccountMenu}>
-                    {this.state.user ? (
-                      <AccountCircleIcon fontSize="large" />
-                    ) : (
-                      <AccountCircleOutlinedIcon fontSize="large" />
-                    )}
-                  </IconButton>
+                  <Button onClick={this.handleOpenAccountMenu}>
+                    <Avatar
+                      src={this.state.user ? this.state.user.photoURL : ""}
+                    >
+                      {/* <IconButton onClick={this.handleOpenAccountMenu}>
+                      {this.state.user ? (
+                        <AccountCircleIcon fontSize="large" />
+                      ) : (
+                        <AccountCircleOutlinedIcon fontSize="large" />
+                      )}
+                    </IconButton> */}
+                    </Avatar>
+                  </Button>
                   <Menu
                     id="menu-appbar"
                     anchorEl={this.state.dropdownEl}
@@ -200,7 +258,7 @@ class Navigation extends React.Component {
                     onClose={this.handleCloseAccountMenu}
                     onClick={this.handleCloseAccountMenu}
                   >
-                    <MenuItem onClick={this.handleAccountRoute}>
+                    <MenuItem component={RouterLink} to="/account">
                       Account
                     </MenuItem>
                     <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
@@ -236,6 +294,29 @@ class Navigation extends React.Component {
                 </Switch>
               </div>
             </div>
+            <SpeedDial
+              className={classes.actionsDot}
+              ariaLabel="Quick Actions"
+              hidden={this.state.actionsHidden}
+              open={this.state.actionsOpen}
+              onClick={this.handleToggleActions}
+              direction="up"
+              icon={<SpeedDialIcon />}
+            >
+              {this.actions.map(action => (
+                <SpeedDialAction
+                  to={action.link}
+                  component={RouterLink}
+                  key={action.name}
+                  icon={action.icon}
+                  tooltipTitle={action.name}
+                  onClick={() => {
+                    action.action();
+                    this.handleCloseAction();
+                  }}
+                />
+              ))}
+            </SpeedDial>
           </BrowserRouter>
         ) : this.state.user === undefined ? (
           <Fade
