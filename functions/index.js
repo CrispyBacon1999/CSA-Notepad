@@ -13,6 +13,7 @@ const settings = { timestampsInSnapshots: true };
 db.settings(settings);
 
 exports.addEvent = functions.https.onRequest(addEvent);
+exports.refreshEventTeams = functions.https.onRequest(refreshEventTeams);
 
 function addEvent(request, response) {
   var key = request.query.key;
@@ -59,6 +60,28 @@ function addEvent(request, response) {
   } else {
     response.send("Invalid event key");
   }
+}
+
+function refreshEventTeams(request, response) {
+  var key = request.query.key;
+  var dbEventRef = db.collection("events").doc(key);
+  fetch(`https://www.thebluealliance.com/api/v3/event/${key}/teams/keys`, {
+    headers: {
+      "X-TBA-Auth-Key": tbakey
+    },
+    method: "GET"
+  })
+    .then(res => res.json())
+    .then(teams => {
+      let teamNums = teams.map(teamKey => parseInt(teamKey.substring(3, 8)));
+      dbEventRef
+        .set({
+          teams: teamNums
+        })
+        .then(res => {
+          response.send("Successfully updated event teams");
+        });
+    });
 }
 
 // // Create and Deploy Your First Cloud Functions
