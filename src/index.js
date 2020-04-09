@@ -27,7 +27,7 @@ if ("serviceWorker" in navigator) {
 } else {
   console.warn("Service workers not supported in this browser.");
 }
-
+var deferredPrompt = null;
 window.addEventListener("beforeinstallprompt", (e) => {
   console.log("beforeinstallprompt Event fired");
   e.preventDefault();
