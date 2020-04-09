@@ -9,12 +9,7 @@ import AccountCircleOutlinedIcon from "@material-ui/icons/AccountCircleOutlined"
 import EventIcon from "@material-ui/icons/Event";
 import ReportProblemIcon from "@material-ui/icons/ReportProblem";
 
-import {
-  Switch,
-  Route,
-  BrowserRouter,
-  Link as RouterLink
-} from "react-router-dom";
+import { Switch, BrowserRouter, Link as RouterLink } from "react-router-dom";
 
 import { mainListItems, secondaryListItems } from "./listItems";
 import {
@@ -30,7 +25,7 @@ import {
   Menu,
   MenuItem,
   Fade,
-  CircularProgress
+  CircularProgress,
 } from "@material-ui/core";
 import { SpeedDial, SpeedDialIcon, SpeedDialAction } from "@material-ui/lab";
 import Login from "./pages/Login";
@@ -41,50 +36,50 @@ import routes from "./Routes";
 
 const drawerWidth = 240;
 
-const styles = theme => ({
+const styles = (theme) => ({
   root: {
     display: "flex",
-    flexGrow: 1
+    flexGrow: 1,
   },
   paper: {
     padding: theme.spacing(2),
     display: "flex",
     overflow: "auto",
-    flexDirection: "column"
+    flexDirection: "column",
   },
   title: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   toolbar: {
-    paddingRight: 24
+    paddingRight: 24,
   },
   toolbarIcon: {
     display: "flex",
     alignItems: "center",
     justifyContent: "flex-end",
     padding: "0 8px",
-    ...theme.mixins.toolbar
+    ...theme.mixins.toolbar,
   },
   menuButton: {
-    marginRight: theme.spacing(2)
+    marginRight: theme.spacing(2),
   },
   menuButtonHidden: {
-    display: "none"
+    display: "none",
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(["width", "margin"], {
       easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    })
+      duration: theme.transitions.duration.leavingScreen,
+    }),
   },
   appBarShift: {
     marginLeft: drawerWidth,
     width: `calc(100% - ${drawerWidth}px)`,
     transition: theme.transitions.create(["width", "margin"], {
       easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen
-    })
+      duration: theme.transitions.duration.enteringScreen,
+    }),
   },
   drawerPaper: {
     position: "relative",
@@ -92,31 +87,31 @@ const styles = theme => ({
     width: drawerWidth,
     transition: theme.transitions.create("width", {
       easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen
-    })
+      duration: theme.transitions.duration.enteringScreen,
+    }),
   },
   drawerPaperClose: {
     overflowX: "hidden",
     transition: theme.transitions.create("width", {
       easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
+      duration: theme.transitions.duration.leavingScreen,
     }),
     width: theme.spacing(7),
     [theme.breakpoints.up("sm")]: {
-      width: theme.spacing(7)
-    }
+      width: theme.spacing(7),
+    },
   },
   appBarSpacer: theme.mixins.toolbar,
   content: {
     flexGrow: 1,
     height: "100vh",
-    overflow: "auto"
+    overflow: "auto",
   },
   actionsDot: {
     position: "fixed",
     bottom: theme.spacing(2),
-    right: theme.spacing(2)
-  }
+    right: theme.spacing(2),
+  },
 });
 
 class Navigation extends React.Component {
@@ -125,24 +120,24 @@ class Navigation extends React.Component {
     this.state = {
       user: undefined,
       drawerOpen: false,
-      actionsOpen: false
+      actionsOpen: false,
     };
     firebase.auth().onAuthStateChanged(this.authStateChanged);
     firebase
       .firestore()
       .enablePersistence()
-      .catch(err => {
-        if (err.code == "failed-precondition") {
+      .catch((err) => {
+        if (err.code === "failed-precondition") {
           console.warn(
             "Multiple tabs open. Can only be enabled in one tab at a time"
           );
-        } else if (err.code == "unimplemented") {
+        } else if (err.code === "unimplemented") {
           console.warn("Not enough browser support for persistence.");
         }
       });
   }
 
-  authStateChanged = user => {
+  authStateChanged = (user) => {
     if (user) {
       this.setState({ user });
     } else {
@@ -153,25 +148,25 @@ class Navigation extends React.Component {
 
   handleDrawerClose = () => {
     this.setState({
-      drawerOpen: false
+      drawerOpen: false,
     });
   };
 
   handleDrawerOpen = () => {
     this.setState({
-      drawerOpen: true
+      drawerOpen: true,
     });
   };
 
-  handleOpenAccountMenu = event => {
+  handleOpenAccountMenu = (event) => {
     this.setState({
-      dropdownEl: event.currentTarget
+      dropdownEl: event.currentTarget,
     });
   };
 
   handleCloseAccountMenu = () => {
     this.setState({
-      dropdownEl: null
+      dropdownEl: null,
     });
   };
 
@@ -182,13 +177,13 @@ class Navigation extends React.Component {
 
   handleToggleActions = () => {
     this.setState({
-      actionsOpen: !this.state.actionsOpen
+      actionsOpen: !this.state.actionsOpen,
     });
   };
 
   handleCloseAction = () => {
     this.setState({
-      actionsOpen: false
+      actionsOpen: false,
     });
   };
 
@@ -197,14 +192,14 @@ class Navigation extends React.Component {
       icon: <EventIcon />,
       name: "Join Event",
       action: () => {},
-      link: "/account/addEvent"
+      link: "/account/addEvent",
     },
     {
       icon: <ReportProblemIcon />,
       name: "Add Problem",
       action: () => {},
-      link: "/problems/add"
-    }
+      link: "/problems/add",
+    },
   ];
 
   render() {
@@ -275,7 +270,7 @@ class Navigation extends React.Component {
                   paper: clsx(
                     classes.drawerPaper,
                     !this.state.drawerOpen && classes.drawerPaperClose
-                  )
+                  ),
                 }}
                 open={this.state.drawerOpen}
               >
@@ -293,7 +288,7 @@ class Navigation extends React.Component {
                 <div className={classes.appBarSpacer} />
                 <Switch>
                   {routes({
-                    user: this.state.user
+                    user: this.state.user,
                   })}
                 </Switch>
               </div>
@@ -307,7 +302,7 @@ class Navigation extends React.Component {
               direction="up"
               icon={<SpeedDialIcon />}
             >
-              {this.actions.map(action => (
+              {this.actions.map((action) => (
                 <SpeedDialAction
                   to={action.link}
                   component={RouterLink}
@@ -326,7 +321,7 @@ class Navigation extends React.Component {
           <Fade
             in={this.state.user === undefined}
             style={{
-              transitionDelay: this.state.user === undefined ? "800ms" : "0ms"
+              transitionDelay: this.state.user === undefined ? "800ms" : "0ms",
             }}
             unmountOnExit
           >

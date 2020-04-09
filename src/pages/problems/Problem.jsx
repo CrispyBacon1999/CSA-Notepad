@@ -6,7 +6,7 @@ import {
   Typography,
   Hidden,
   Chip,
-  Paper
+  Paper,
 } from "@material-ui/core";
 import firebase from "firebase/app";
 import "firebase/firestore";
@@ -14,22 +14,22 @@ import { getProblemIcon } from "../../components/Label";
 import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
 import CheckCircleOutlineIcon from "@material-ui/icons/CheckCircleOutline";
 
-const styles = theme => ({
+const styles = (theme) => ({
   root: {
     flexGrow: 1,
-    paddingTop: theme.spacing(3)
+    paddingTop: theme.spacing(3),
   },
   titleIcon: {
     display: "flex",
     alignItems: "center",
     justifyContent: "flex-end",
-    paddingRight: theme.spacing(2)
+    paddingRight: theme.spacing(2),
   },
   comment: {
     padding: theme.spacing(2),
     color: theme.palette.text.secondary,
-    marginTop: theme.spacing(2)
-  }
+    marginTop: theme.spacing(2),
+  },
 });
 
 class Problem extends React.Component {
@@ -38,7 +38,7 @@ class Problem extends React.Component {
     this.state = {
       title: "",
       type: "",
-      comments: []
+      comments: [],
     };
     this.loadProblem();
   }
@@ -49,7 +49,7 @@ class Problem extends React.Component {
       .firestore()
       .collection("problems")
       .doc(key)
-      .onSnapshot(async doc => {
+      .onSnapshot(async (doc) => {
         let prob = doc.data();
         console.log(prob);
         this.setState({
@@ -57,32 +57,29 @@ class Problem extends React.Component {
           open: prob.open,
           type: prob.type,
           time: prob.time,
-          team: prob.team
+          team: prob.team,
         });
-        prob.createdBy.onSnapshot(async user => {
+        prob.createdBy.onSnapshot(async (user) => {
           this.setState({
-            createdBy: user.data()
+            createdBy: user.data(),
           });
         });
         let comments = [
           {
             createdBy: prob.createdBy,
             text: prob.text,
-            time: prob.time
+            time: prob.time,
           },
-          ...prob.comments
+          ...prob.comments,
         ];
         this.setState({
-          comments: comments
+          comments: comments,
         });
       });
   };
 
   render() {
-    const {
-      classes,
-      match: { params }
-    } = this.props;
+    const { classes } = this.props;
     return (
       <Container className={classes.root}>
         <Grid container spacing={2}>
@@ -102,7 +99,7 @@ class Problem extends React.Component {
               size="small"
               style={{
                 backgroundColor: this.state.open ? "#00d900" : "#d90000",
-                color: this.state.open ? "black" : "white"
+                color: this.state.open ? "black" : "white",
               }}
               label={this.state.open ? "Open" : "Resolved"}
               icon={
@@ -129,7 +126,7 @@ class Problem extends React.Component {
             </Typography>
           </Grid>
           <Grid item xs={12}>
-            {this.state.comments.map(comment => (
+            {this.state.comments.map((comment) => (
               <Paper className={classes.comment}>{comment.text}</Paper>
             ))}
             <Paper>{this.state.text}</Paper>

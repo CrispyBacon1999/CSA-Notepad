@@ -12,31 +12,31 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Badge
+  Badge,
 } from "@material-ui/core";
 
 import { Link as RouterLink } from "react-router-dom";
 
 import { getProblemIcon } from "../components/Label";
 
-const styles = theme => ({
+const styles = (theme) => ({
   root: {
     display: "flex",
     flexGrow: 1,
     flexDirection: "column",
     alignItems: "center",
-    padding: theme.spacing(6)
+    padding: theme.spacing(6),
   },
   avatar: {
     width: theme.spacing(9),
-    height: theme.spacing(9)
+    height: theme.spacing(9),
   },
   paper: {
-    padding: theme.spacing(4)
+    padding: theme.spacing(4),
   },
   userName: {
-    marginBottom: theme.spacing(3)
-  }
+    marginBottom: theme.spacing(3),
+  },
 });
 
 class Account extends React.Component {
@@ -44,7 +44,7 @@ class Account extends React.Component {
     super(props);
     this.state = {
       events: [],
-      problems: []
+      problems: [],
     };
     this.getEvents();
     this.getProblems();
@@ -59,9 +59,9 @@ class Account extends React.Component {
       .firestore()
       .collection("problems")
       .where("createdBy", "==", userRef);
-    problems.onSnapshot(snapshot => {
+    problems.onSnapshot((snapshot) => {
       console.log(snapshot.docs.length);
-      var p = snapshot.docs.map(prob => {
+      var p = snapshot.docs.map((prob) => {
         var x = prob.data();
         x.key = prob.id;
         if (x.comments) {
@@ -71,7 +71,7 @@ class Account extends React.Component {
       });
 
       this.setState({
-        problems: p
+        problems: p,
       });
     });
   };
@@ -81,9 +81,8 @@ class Account extends React.Component {
       .firestore()
       .collection("users")
       .doc(this.props.user.uid)
-      .onSnapshot(async doc => {
-        var source = doc.metadata.hasPendingWrites ? "Local" : "Server";
-        var events = doc.data().events.map(async event => {
+      .onSnapshot(async (doc) => {
+        var events = doc.data().events.map(async (event) => {
           var e = await event.get();
           var eventObj = e.data();
           eventObj.key = e.id;
@@ -91,7 +90,7 @@ class Account extends React.Component {
         });
         events = await Promise.all(events);
         this.setState({
-          events: events
+          events: events,
         });
       });
   };
@@ -115,7 +114,7 @@ class Account extends React.Component {
                 Events
               </Typography>
               <List>
-                {this.state.events.map(event => (
+                {this.state.events.map((event) => (
                   <ListItem button key={event.key}>
                     <ListItemText
                       primary={event.name}
@@ -132,7 +131,7 @@ class Account extends React.Component {
                 Reported Problems
               </Typography>
               <List>
-                {this.state.problems.map(problem => (
+                {this.state.problems.map((problem) => (
                   <ListItem
                     button
                     key={problem.key}
