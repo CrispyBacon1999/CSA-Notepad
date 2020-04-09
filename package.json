@@ -6,7 +6,8 @@
     "dev": "run-p --race dev:firebase dev:react",
     "dev:firebase": "firebase serve -p 4000",
     "dev:react": "react-scripts start",
-    "build:prod": "react-scripts build"
+    "build:prod": "react-scripts build",
+    "postinstall": "cd functions && npm i"
   },
   "dependencies": {
     "@material-ui/core": "^4.9.1",

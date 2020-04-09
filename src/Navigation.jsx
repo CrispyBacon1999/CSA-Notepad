@@ -103,7 +103,7 @@ const styles = theme => ({
     }),
     width: theme.spacing(7),
     [theme.breakpoints.up("sm")]: {
-      width: theme.spacing(9)
+      width: theme.spacing(7)
     }
   },
   appBarSpacer: theme.mixins.toolbar,
@@ -240,16 +240,20 @@ class Navigation extends React.Component {
                   </Typography>
                   <Button onClick={this.handleOpenAccountMenu}>
                     <Avatar
-                      src={this.state.user ? this.state.user.photoURL : ""}
-                    >
-                      {/* <IconButton onClick={this.handleOpenAccountMenu}>
-                      {this.state.user ? (
-                        <AccountCircleIcon fontSize="large" />
-                      ) : (
-                        <AccountCircleOutlinedIcon fontSize="large" />
-                      )}
-                    </IconButton> */}
-                    </Avatar>
+                      src={
+                        this.state.user ? (
+                          this.state.user.photoURL
+                        ) : (
+                          <IconButton onClick={this.handleOpenAccountMenu}>
+                            {this.state.user ? (
+                              <AccountCircleIcon fontSize="large" />
+                            ) : (
+                              <AccountCircleOutlinedIcon fontSize="large" />
+                            )}
+                          </IconButton>
+                        )
+                      }
+                    ></Avatar>
                   </Button>
                   <Menu
                     id="menu-appbar"
