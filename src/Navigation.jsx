@@ -11,6 +11,8 @@ import ReportProblemIcon from "@material-ui/icons/ReportProblem";
 
 import { Switch, BrowserRouter, Link as RouterLink } from "react-router-dom";
 
+import { connect } from "react-redux";
+
 import { mainListItems, secondaryListItems } from "./listItems";
 import {
   AppBar,
@@ -33,6 +35,16 @@ import * as firebase from "firebase/app";
 import "firebase/auth";
 
 import routes from "./Routes";
+import {
+  toggleDrawer,
+  toggleActionsMenu,
+  signIn,
+} from "./data/reducers/general";
+import {
+  watchUser,
+  updateUserProfilePicture,
+  loadUser,
+} from "./data/reducers/user";
 
 const drawerWidth = 240;
 
@@ -122,7 +134,7 @@ class Navigation extends React.Component {
       drawerOpen: false,
       actionsOpen: false,
     };
-    firebase.auth().onAuthStateChanged(this.authStateChanged);
+
     firebase
       .firestore()
       .enablePersistence()
@@ -136,13 +148,18 @@ class Navigation extends React.Component {
         }
       });
   }
+  componentDidMount() {
+    firebase.auth().onAuthStateChanged(this.authStateChanged);
+  }
 
   authStateChanged = (user) => {
     if (user) {
-      this.setState({ user });
+      this.props.loadUser(user.uid);
+      this.props.signIn(user.uid);
+      updateUserProfilePicture(user.uid, user.photoURL);
     } else {
+      this.props.signIn(undefined);
       console.log("No user signed in");
-      this.setState({ user: null });
     }
   };
 
@@ -204,9 +221,14 @@ class Navigation extends React.Component {
 
   render() {
     const { classes } = this.props;
+    const currentUser =
+      this.props.general.signedInUser === undefined
+        ? null
+        : this.props.users[this.props.general.signedInUser];
+
     return (
       <div>
-        {this.state.user ? (
+        {currentUser ? (
           <BrowserRouter>
             <div className={classes.root}>
               <CssBaseline />
@@ -236,11 +258,11 @@ class Navigation extends React.Component {
                   <Button onClick={this.handleOpenAccountMenu}>
                     <Avatar
                       src={
-                        this.state.user ? (
-                          this.state.user.photoURL
+                        currentUser ? (
+                          currentUser.photoURL
                         ) : (
                           <IconButton onClick={this.handleOpenAccountMenu}>
-                            {this.state.user ? (
+                            {currentUser ? (
                               <AccountCircleIcon fontSize="large" />
                             ) : (
                               <AccountCircleOutlinedIcon fontSize="large" />
@@ -286,11 +308,7 @@ class Navigation extends React.Component {
               </Drawer>
               <div className={classes.content}>
                 <div className={classes.appBarSpacer} />
-                <Switch>
-                  {routes({
-                    user: this.state.user,
-                  })}
-                </Switch>
+                <Switch>{routes({})}</Switch>
               </div>
             </div>
             <SpeedDial
@@ -317,11 +335,11 @@ class Navigation extends React.Component {
               ))}
             </SpeedDial>
           </BrowserRouter>
-        ) : this.state.user === undefined ? (
+        ) : currentUser === undefined ? (
           <Fade
-            in={this.state.user === undefined}
+            in={currentUser === undefined}
             style={{
-              transitionDelay: this.state.user === undefined ? "800ms" : "0ms",
+              transitionDelay: currentUser === undefined ? "800ms" : "0ms",
             }}
             unmountOnExit
           >
@@ -335,4 +353,18 @@ class Navigation extends React.Component {
   }
 }
 
-export default withStyles(styles)(Navigation);
+const mapStateToProps = (state) => ({
+  users: state.users,
+  general: state.general,
+});
+const mapDispatchToProps = {
+  toggleActionsMenu: toggleActionsMenu,
+  toggleDrawer: toggleDrawer,
+  loadUser: loadUser,
+  signIn: signIn,
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(withStyles(styles)(Navigation));

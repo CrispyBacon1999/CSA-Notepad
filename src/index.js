@@ -5,8 +5,14 @@ import Navigation from "./Navigation";
 
 import * as firebase from "firebase/app";
 import { firebaseConfig } from "./firebase";
+import { store } from "./data/store";
+import { Provider } from "react-redux";
+import "firebase/performance";
+import "firebase/analytics";
 
 firebase.initializeApp(firebaseConfig);
+firebase.performance();
+firebase.analytics();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
@@ -27,7 +33,7 @@ if ("serviceWorker" in navigator) {
 } else {
   console.warn("Service workers not supported in this browser.");
 }
-
+var deferredPrompt = null;
 window.addEventListener("beforeinstallprompt", (e) => {
   console.log("beforeinstallprompt Event fired");
   e.preventDefault();
@@ -43,4 +49,9 @@ if (deferredPrompt) {
   deferredPrompt = null;
 }
 
-ReactDOM.render(<Navigation />, document.getElementById("root"));
+ReactDOM.render(
+  <Provider store={store}>
+    <Navigation />
+  </Provider>,
+  document.getElementById("root")
+);

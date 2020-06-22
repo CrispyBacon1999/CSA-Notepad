@@ -1,10 +1,11 @@
 import React from "react";
 import { withStyles } from "@material-ui/core";
+import { connect } from "react-redux";
 
-const styles = theme => ({
+const styles = (theme) => ({
   root: {
-    flexGrow: 1
-  }
+    flexGrow: 1,
+  },
 });
 
 class Home extends React.Component {
@@ -13,4 +14,6 @@ class Home extends React.Component {
   }
 }
 
-export default withStyles(styles)(Home);
+export default connect((state) => ({
+  users: state.users,
+}))(withStyles(styles)(Home));
