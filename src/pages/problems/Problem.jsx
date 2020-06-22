@@ -7,12 +7,16 @@ import {
   Hidden,
   Chip,
   Paper,
+  Box,
+  Avatar,
 } from "@material-ui/core";
 import firebase from "firebase/app";
 import "firebase/firestore";
 import { getProblemIcon } from "../../components/Label";
 import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
 import CheckCircleOutlineIcon from "@material-ui/icons/CheckCircleOutline";
+import { connect } from "react-redux";
+import { Skeleton } from "@material-ui/lab";
 
 const styles = (theme) => ({
   root: {
@@ -26,9 +30,26 @@ const styles = (theme) => ({
     paddingRight: theme.spacing(2),
   },
   comment: {
-    padding: theme.spacing(2),
     color: theme.palette.text.secondary,
-    marginTop: theme.spacing(2),
+    boxShadow: theme.shadows[3],
+  },
+  commentHeader: {
+    minHeight: theme.spacing(4),
+    boxShadow: theme.shadows[1],
+    padding: theme.spacing(1),
+    color: theme.palette.text.primary,
+    fontWeight: "bold",
+  },
+  commentBody: {
+    padding: theme.spacing(1),
+  },
+  commentLine: {
+    display: "grid",
+    gridTemplateColumns: "auto 1fr",
+    marginBottom: theme.spacing(2),
+  },
+  commentAvatar: {
+    marginRight: theme.spacing(3),
   },
 });
 
@@ -58,12 +79,9 @@ class Problem extends React.Component {
           type: prob.type,
           time: prob.time,
           team: prob.team,
+          createdBy: prob.createdBy,
         });
-        prob.createdBy.onSnapshot(async (user) => {
-          this.setState({
-            createdBy: user.data(),
-          });
-        });
+        this.loadUser(prob.createdBy);
         let comments = [
           {
             createdBy: prob.createdBy,
@@ -73,9 +91,19 @@ class Problem extends React.Component {
           ...prob.comments,
         ];
         this.setState({
-          comments: comments,
+          comments: comments.map((p, index) => ({
+            ...p,
+            key: `${key}-${index}`,
+          })),
         });
       });
+  };
+
+  loadUser = (id) => {
+    if (!this.props.users.hasOwnProperty(id)) {
+      console.log(`Loading user: ${id}`);
+      this.props.loadUser(id);
+    }
   };
 
   render() {
@@ -114,21 +142,23 @@ class Problem extends React.Component {
           <Grid item sm={11} md={4}>
             <Typography variant={"subtitle2"}>
               Created by{" "}
-              {this.state.createdBy ? this.state.createdBy.name : "Unknown"}{" "}
-              {/* created this on {this.state.time} */}
-            </Typography>
-          </Grid>
-          <Grid item sm={12} md={7}>
-            <Typography variant={"subtitle2"}>
-              Created by{" "}
-              {this.state.createdBy ? this.state.createdBy.name : "Unknown"}{" "}
-              {/* created this on {this.state.time} */}
+              {this.props.users[this.state.createdBy]
+                ? this.props.users[this.state.createdBy].name
+                : "Unknown"}
+              {this.state.time ? ` on ${this.state.time.toDate()}` : ""}
             </Typography>
           </Grid>
           <Grid item xs={12}>
-            {this.state.comments.map((comment) => (
-              <Paper className={classes.comment}>{comment.text}</Paper>
-            ))}
+            <Grid>
+              {this.state.comments.map((comment) => (
+                <StyledComment
+                  key={comment.key}
+                  text={comment.text}
+                  user={this.props.users[comment.createdBy]}
+                  time={comment.time}
+                ></StyledComment>
+              ))}
+            </Grid>
             <Paper>{this.state.text}</Paper>
           </Grid>
         </Grid>
@@ -137,4 +167,63 @@ class Problem extends React.Component {
   }
 }
 
-export default withStyles(styles)(Problem);
+class Comment extends React.Component {
+  commentTime = () => {
+    const now = new Date(Date.now());
+    const dt = this.props.time.toDate();
+    if (
+      now.getFullYear() === dt.getFullYear() &&
+      now.getMonth() === dt.getMonth() &&
+      now.getDate() === dt.getDate()
+    ) {
+      return `at ${this.time(dt)}`;
+    } else {
+      return `on ${this.date(dt)} at ${this.time(dt)}`;
+    }
+  };
+
+  date = (dt) => {
+    const month = dt.getMonth() + 1;
+    const day = dt.getDate();
+    const year = dt.getFullYear();
+    return `${month}/${day}/${year}`;
+  };
+
+  time = (dt) => {
+    var hours = dt.getHours();
+    const mins = ("0" + dt.getMinutes()).slice(-2);
+    const ampm = hours < 12 && hours !== 0 ? "AM" : "PM";
+    hours = hours % 12 || 12;
+    return `${hours}:${mins} ${ampm}`;
+  };
+
+  render() {
+    const { classes } = this.props;
+    return (
+      <Box className={classes.commentLine}>
+        <Avatar
+          className={classes.commentAvatar}
+          src={this.props.user.pic}
+        ></Avatar>
+        <Paper className={classes.comment}>
+          <Box className={classes.commentHeader}>
+            {this.props.user ? (
+              this.props.user.name
+            ) : (
+              <Skeleton animation="wave" />
+            )}{" "}
+            {this.commentTime()}
+          </Box>
+          <Box className={classes.commentBody}>{this.props.text}</Box>
+        </Paper>
+      </Box>
+    );
+  }
+}
+
+const StyledComment = withStyles(styles)(Comment);
+
+export default connect((state) => ({
+  users: state.users,
+  general: state.general,
+}))(withStyles(styles)(Problem));

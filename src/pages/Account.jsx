@@ -18,6 +18,7 @@ import {
 import { Link as RouterLink } from "react-router-dom";
 
 import { getProblemIcon } from "../components/Label";
+import { connect } from "react-redux";
 
 const styles = (theme) => ({
   root: {
@@ -54,13 +55,12 @@ class Account extends React.Component {
     var userRef = firebase
       .firestore()
       .collection("users")
-      .doc(this.props.user.uid);
+      .doc(this.props.general.signedInUser);
     var problems = firebase
       .firestore()
       .collection("problems")
       .where("createdBy", "==", userRef);
     problems.onSnapshot((snapshot) => {
-      console.log(snapshot.docs.length);
       var p = snapshot.docs.map((prob) => {
         var x = prob.data();
         x.key = prob.id;
@@ -80,7 +80,7 @@ class Account extends React.Component {
     firebase
       .firestore()
       .collection("users")
-      .doc(this.props.user.uid)
+      .doc(this.props.general.signedInUser)
       .onSnapshot(async (doc) => {
         var events = doc.data().events.map(async (event) => {
           var e = await event.get();
@@ -97,15 +97,16 @@ class Account extends React.Component {
 
   render() {
     const { classes } = this.props;
+    const currentUser = this.props.users[this.props.general.signedInUser];
     return (
       <Container className={classes.root}>
         <Avatar
-          src={this.props.user.photoURL}
+          src={currentUser.photoURL}
           size="large"
           className={classes.avatar}
         ></Avatar>
         <Typography component="h1" variant="h5" className={classes.userName}>
-          {this.props.user.displayName}
+          {currentUser.displayName}
         </Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6}>
@@ -161,4 +162,7 @@ class Account extends React.Component {
   }
 }
 
-export default withStyles(styles)(Account);
+export default connect(
+  (state) => ({ general: state.general, users: state.users }),
+  {}
+)(withStyles(styles)(Account));
