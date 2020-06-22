@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "csa-notepad-1559706274069"
+  },
+  "targets": {
+    "csa-notepad-1559706274069": {
+      "hosting": {
+        "prod": [
+          "csanotepad"
+        ],
+        "beta": [
+          "beta-csanotepad"
+        ]
+      }
+    }
   }
 }

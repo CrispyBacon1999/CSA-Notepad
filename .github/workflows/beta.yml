@@ -1,10 +1,9 @@
-name: Production Build
+name: Beta Build
 
 on:
   push:
     branches:
-    - master
-    - release/*
+    - beta
 
 jobs:
   firebase-hosting:
@@ -18,7 +17,7 @@ jobs:
     - run: npm run build:prod
     - uses: w9jds/firebase-action@master
       with:
-        args: deploy --only hosting:prod
+        args: deploy --only hosting:beta
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
     - uses: w9jds/firebase-action@master

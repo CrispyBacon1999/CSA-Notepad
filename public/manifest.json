@@ -1,0 +1,15 @@
+{
+  "short_name": "CSA Notepad",
+  "name": "CSA Notepad",
+  "icons": [
+    {
+      "src": "/assets/login/google.png",
+      "sizes": "1004x1023",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/?utm_source=homescreen",
+  "background_color": "#ffffff",
+  "theme_color": "#ff9900",
+  "display": "standalone"
+}
