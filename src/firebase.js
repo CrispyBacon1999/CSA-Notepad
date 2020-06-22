@@ -5,5 +5,6 @@ export const firebaseConfig = {
   projectId: "csa-notepad-1559706274069",
   storageBucket: "csa-notepad-1559706274069.appspot.com",
   messagingSenderId: "167390266392",
-  appId: "1:167390266392:web:8354d265ac893de997af6d"
+  appId: "1:167390266392:web:8354d265ac893de997af6d",
+  measurementId: "G-Q9131X1BS9",
 };

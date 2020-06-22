@@ -52,14 +52,10 @@ class Account extends React.Component {
   }
 
   getProblems = async () => {
-    var userRef = firebase
-      .firestore()
-      .collection("users")
-      .doc(this.props.general.signedInUser);
     var problems = firebase
       .firestore()
       .collection("problems")
-      .where("createdBy", "==", userRef);
+      .where("createdBy", "==", this.props.general.signedInUser);
     problems.onSnapshot((snapshot) => {
       var p = snapshot.docs.map((prob) => {
         var x = prob.data();

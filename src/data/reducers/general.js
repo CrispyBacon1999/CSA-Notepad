@@ -44,7 +44,6 @@ export function signIn(key) {
 }
 
 export function reducer(state = defaultState, action) {
-  console.log(action);
   switch (action.type) {
     case OPEN_ACTIONS:
       return { ...state, actionsOpen: true };
