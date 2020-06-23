@@ -16,15 +16,26 @@ import {
 import { getProblemIcon } from "../../components/Label";
 import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
 import CheckCircleOutlineIcon from "@material-ui/icons/CheckCircleOutline";
+import HighlightOffIcon from "@material-ui/icons/HighlightOff";
 import { connect } from "react-redux";
-import { Skeleton } from "@material-ui/lab";
+import {
+  Skeleton,
+  Timeline,
+  TimelineItem,
+  TimelineSeparator,
+  TimelineDot,
+  TimelineConnector,
+  TimelineContent,
+} from "@material-ui/lab";
 import Editor from "./Editor";
 import {
   loadProblem,
   closeProblem,
   openProblem,
+  deleteComment,
   sendReply,
 } from "../../data/reducers/problem";
+import clsx from "clsx";
 
 const styles = (theme) => ({
   root: {
@@ -37,9 +48,17 @@ const styles = (theme) => ({
     justifyContent: "flex-end",
     paddingRight: theme.spacing(2),
   },
+  timelineItem: {
+    "&::before": {
+      flex: 0,
+    },
+  },
   comment: {
     color: theme.palette.text.secondary,
     boxShadow: theme.shadows[3],
+  },
+  connectorHidden: {
+    backgroundColor: "transparent",
   },
   commentHeader: {
     minHeight: theme.spacing(4),
@@ -55,6 +74,18 @@ const styles = (theme) => ({
     display: "grid",
     gridTemplateColumns: "auto 1fr",
     marginBottom: theme.spacing(2),
+    "&::before": {
+      width: 0,
+      height: 0,
+      borderStyle: "solid",
+      borderWidth: "10px 15px 10px 0",
+      borderColor: `transparent ${theme.palette.background.paper} transparent transparent`,
+      content: "' '",
+      zIndex: 100,
+      marginTop: theme.shape.borderRadius,
+      filter:
+        "drop-shadow(-2px 3px 2px rgba(0,0,0,0.14)) drop-shadow(-4px 1px 4px rgba(0,0,0,0.12))",
+    },
   },
   commentAvatar: {
     marginRight: theme.spacing(3),
@@ -118,20 +149,25 @@ class Problem extends React.Component {
             </Typography>
           </Grid>
           <Grid item xs={12}>
-            <Grid>
-              {problem.comments.map((comment) => (
+            <Timeline className={classes.timeline}>
+              {problem.comments.map((comment, index) => (
                 <StyledComment
                   key={comment.key}
                   text={comment.text}
                   user={this.props.users[comment.createdBy]}
                   time={comment.time}
+                  type={comment.type}
+                  base={comment.base || false}
                   createdByCurrentUser={
                     comment.createdBy === this.props.general.signedInUser
                   }
+                  first={index === 0}
+                  last={problem.comments.length === index + 1}
                 ></StyledComment>
               ))}
-            </Grid>
-            <Paper>{this.state.text}</Paper>
+
+              <Paper>{this.state.text}</Paper>
+            </Timeline>
           </Grid>
           <Grid item xs={12}>
             <Editor
@@ -196,7 +232,64 @@ class Comment extends React.Component {
     });
   };
 
-  render() {
+  inner = () => {
+    switch (this.props.type) {
+      case "open":
+        return (
+          <TimelineContent>
+            <Typography variant="subtitle1">
+              {this.props.user.name} reopened this issue on {this.commentTime()}
+            </Typography>
+          </TimelineContent>
+        );
+      case "close":
+        return (
+          <TimelineContent>
+            <Typography variant="subtitle1">
+              {this.props.user.name} closed this on {this.commentTime()}
+            </Typography>
+          </TimelineContent>
+        );
+      default:
+        return <TimelineContent>{this.message()}</TimelineContent>;
+    }
+  };
+
+  separator = () => {
+    const { classes } = this.props;
+    switch (this.props.type) {
+      case "open":
+      case "close":
+        return (
+          <TimelineSeparator>
+            {/* <TimelineConnector
+              className={clsx({ [classes.connectorHidden]: this.props.first })}
+            ></TimelineConnector> */}
+
+            <Avatar>
+              <HighlightOffIcon />
+            </Avatar>
+            <TimelineConnector
+              className={clsx({ [classes.connectorHidden]: this.props.last })}
+            ></TimelineConnector>
+          </TimelineSeparator>
+        );
+      default:
+        return (
+          <TimelineSeparator>
+            {/* <TimelineConnector
+              className={clsx({ [classes.connectorHidden]: this.props.first })}
+            ></TimelineConnector> */}
+            <Avatar src={this.props.user.pic}></Avatar>
+            <TimelineConnector
+              className={clsx({ [classes.connectorHidden]: this.props.last })}
+            ></TimelineConnector>
+          </TimelineSeparator>
+        );
+    }
+  };
+
+  message = () => {
     const { classes } = this.props;
     return (
       <div
@@ -204,20 +297,22 @@ class Comment extends React.Component {
         style={{ cursor: "context-menu" }}
       >
         <Box className={classes.commentLine}>
-          <Avatar
-            className={classes.commentAvatar}
-            src={this.props.user.pic}
-          ></Avatar>
           <Paper className={classes.comment}>
             <Box className={classes.commentHeader}>
-              {this.props.user ? (
-                this.props.user.name
-              ) : (
-                <Skeleton animation="wave" />
-              )}{" "}
-              {this.commentTime()}
+              <Typography variant="subtitle1">
+                <b>
+                  {this.props.user ? (
+                    this.props.user.name
+                  ) : (
+                    <Skeleton animation="wave" />
+                  )}
+                </b>{" "}
+                {this.commentTime()}
+              </Typography>
             </Box>
-            <Box className={classes.commentBody}>{this.props.text}</Box>
+            <Box className={classes.commentBody}>
+              <Typography variant="body1">{this.props.text}</Typography>
+            </Box>
           </Paper>
         </Box>
         <Menu
@@ -232,13 +327,23 @@ class Comment extends React.Component {
           }
         >
           <MenuItem
-            disabled={!this.props.createdByCurrentUser}
-            onClick={() => this.props.delete()}
+            disabled={this.props.base || !this.props.createdByCurrentUser}
+            onClick={() => this.props.delete(this.props.index)}
           >
             Delete
           </MenuItem>
         </Menu>
       </div>
+    );
+  };
+
+  render() {
+    const { classes } = this.props;
+    return (
+      <TimelineItem className={classes.timelineItem}>
+        {this.separator()}
+        {this.inner()}
+      </TimelineItem>
     );
   }
 }
@@ -255,6 +360,7 @@ export default connect(
     loadProblem: loadProblem,
     open: openProblem,
     close: closeProblem,
+    delete: deleteComment,
     reply: sendReply,
   }
 )(withStyles(styles)(Problem));
