@@ -21,17 +21,19 @@ export function watchUser(id) {
 }
 
 export function loadUser(id) {
-  return function (dispatch) {
-    var userRef = firebase.firestore().collection("users").doc(id);
-    userRef
-      .get()
-      .then((doc) => {
-        console.log(doc.data());
-        dispatch(storeUser({ uid: id, ...doc.data() }));
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+  return function (dispatch, getState) {
+    if (!(id in getState().users)) {
+      var userRef = firebase.firestore().collection("users").doc(id);
+      userRef
+        .get()
+        .then((doc) => {
+          console.log(doc.data());
+          dispatch(storeUser({ uid: id, ...doc.data() }));
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
   };
 }
 

@@ -16,7 +16,7 @@ import {
 import { getProblemIcon } from "../../components/Label";
 import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
 import CheckCircleOutlineIcon from "@material-ui/icons/CheckCircleOutline";
-import HighlightOffIcon from "@material-ui/icons/HighlightOff";
+import InfoOutlinedIcon from "@material-ui/icons/InfoOutlined";
 import { connect } from "react-redux";
 import {
   Skeleton,
@@ -50,6 +50,7 @@ const styles = (theme) => ({
   timelineItem: {
     "&::before": {
       flex: 0,
+      padding: 0,
     },
   },
   comment: {
@@ -65,6 +66,14 @@ const styles = (theme) => ({
     padding: theme.spacing(1),
     color: theme.palette.text.primary,
     fontWeight: "bold",
+  },
+  avatarOpen: {
+    backgroundColor: theme.palette.success.dark,
+    color: theme.palette.getContrastText(theme.palette.success.dark),
+  },
+  avatarClose: {
+    backgroundColor: theme.palette.error.dark,
+    color: theme.palette.getContrastText(theme.palette.error.dark),
   },
   commentBody: {
     padding: theme.spacing(1),
@@ -275,8 +284,19 @@ class Comment extends React.Component {
               className={clsx({ [classes.connectorHidden]: this.props.first })}
             ></TimelineConnector> */}
 
-            <Avatar>
-              <HighlightOffIcon />
+            <Avatar
+              className={clsx({
+                [classes.avatarOpen]: this.props.type === "open",
+                [classes.avatarClose]: this.props.type === "close",
+              })}
+            >
+              {this.props.type === "close" ? (
+                <CheckCircleOutlineIcon />
+              ) : this.props.type === "open" ? (
+                <ErrorOutlineIcon />
+              ) : (
+                <InfoOutlinedIcon />
+              )}
             </Avatar>
             <TimelineConnector
               className={clsx({ [classes.connectorHidden]: this.props.last })}

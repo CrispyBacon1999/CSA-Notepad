@@ -39,8 +39,8 @@ export function fakeComment(data) {
 }
 
 export function loadComment(key) {
-  if (!subscribed(key)) {
-    return (dispatch, getState) => {
+  return (dispatch, getState) => {
+    if (!subscribed(key)) {
       let unsub = firebase
         .firestore()
         .collection("comments")
@@ -59,10 +59,12 @@ export function loadComment(key) {
               type: data.type,
             },
           });
+          dispatch(loadUser(data.createdBy));
         });
+
       listeners[key] = unsub;
-    };
-  }
+    }
+  };
 }
 
 export function reducer(state = defaultState, action) {

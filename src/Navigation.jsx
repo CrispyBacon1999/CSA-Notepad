@@ -28,6 +28,8 @@ import {
   MenuItem,
   Fade,
   CircularProgress,
+  useMediaQuery,
+  useTheme,
 } from "@material-ui/core";
 import { SpeedDial, SpeedDialIcon, SpeedDialAction } from "@material-ui/lab";
 import Login from "./pages/Login";
@@ -126,12 +128,14 @@ const styles = (theme) => ({
 class Navigation extends React.Component {
   constructor(props) {
     super(props);
+    console.log("Constructor");
     this.state = {
       user: undefined,
       drawerOpen: false,
       actionsOpen: false,
     };
-
+  }
+  componentDidMount() {
     firebase
       .firestore()
       .enablePersistence()
@@ -144,8 +148,6 @@ class Navigation extends React.Component {
           console.warn("Not enough browser support for persistence.");
         }
       });
-  }
-  componentDidMount() {
     firebase.auth().onAuthStateChanged(this.authStateChanged);
   }
 
@@ -256,7 +258,7 @@ class Navigation extends React.Component {
                     <Avatar
                       src={
                         currentUser ? (
-                          currentUser.photoURL
+                          currentUser.pic
                         ) : (
                           <IconButton onClick={this.handleOpenAccountMenu}>
                             {currentUser ? (
@@ -283,7 +285,8 @@ class Navigation extends React.Component {
                   </Menu>
                 </Toolbar>
               </AppBar>
-              <Drawer
+              <ResponsiveDrawer
+                // variant={mobile ? "temporary" : "permanent"}
                 variant="permanent"
                 classes={{
                   paper: clsx(
@@ -302,7 +305,7 @@ class Navigation extends React.Component {
                 <List>{mainListItems}</List>
                 <Divider />
                 <List>{secondaryListItems}</List>
-              </Drawer>
+              </ResponsiveDrawer>
               <div className={classes.content}>
                 <div className={classes.appBarSpacer} />
                 <Switch>{routes({})}</Switch>
@@ -348,6 +351,11 @@ class Navigation extends React.Component {
       </Themed>
     );
   }
+}
+
+function ResponsiveDrawer(props) {
+  const mobile = useMediaQuery((theme) => theme.breakpoints.down("sm"));
+  return <Drawer {...props} variant={mobile ? "temporary" : "permanent"} />;
 }
 
 const mapStateToProps = (state) => ({
