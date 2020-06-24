@@ -23,7 +23,6 @@ import {
   Timeline,
   TimelineItem,
   TimelineSeparator,
-  TimelineDot,
   TimelineConnector,
   TimelineContent,
 } from "@material-ui/lab";
@@ -150,21 +149,27 @@ class Problem extends React.Component {
           </Grid>
           <Grid item xs={12}>
             <Timeline className={classes.timeline}>
-              {problem.comments.map((comment, index) => (
-                <StyledComment
-                  key={comment.key}
-                  text={comment.text}
-                  user={this.props.users[comment.createdBy]}
-                  time={comment.time}
-                  type={comment.type}
-                  base={comment.base || false}
-                  createdByCurrentUser={
-                    comment.createdBy === this.props.general.signedInUser
-                  }
-                  first={index === 0}
-                  last={problem.comments.length === index + 1}
-                ></StyledComment>
-              ))}
+              {problem.comments.map((commentID, index) => {
+                var comment =
+                  commentID in this.props.comments
+                    ? this.props.comments[commentID]
+                    : {};
+                return (
+                  <StyledComment
+                    key={commentID}
+                    text={comment.text}
+                    user={this.props.users[comment.createdBy]}
+                    time={comment.time}
+                    type={comment.type}
+                    base={comment.base || false}
+                    createdByCurrentUser={
+                      comment.createdBy === this.props.general.signedInUser
+                    }
+                    first={index === 0}
+                    last={problem.comments.length === index + 1}
+                  ></StyledComment>
+                );
+              })}
 
               <Paper>{this.state.text}</Paper>
             </Timeline>
@@ -186,16 +191,19 @@ class Problem extends React.Component {
 class Comment extends React.Component {
   commentTime = () => {
     const now = new Date(Date.now());
-    const dt = this.props.time.toDate();
-    if (
-      now.getFullYear() === dt.getFullYear() &&
-      now.getMonth() === dt.getMonth() &&
-      now.getDate() === dt.getDate()
-    ) {
-      return `at ${this.time(dt)}`;
-    } else {
-      return `on ${this.date(dt)} at ${this.time(dt)}`;
+    if (this.props.time) {
+      const dt = this.props.time.toDate();
+      if (
+        now.getFullYear() === dt.getFullYear() &&
+        now.getMonth() === dt.getMonth() &&
+        now.getDate() === dt.getDate()
+      ) {
+        return `at ${this.time(dt)}`;
+      } else {
+        return `on ${this.date(dt)} at ${this.time(dt)}`;
+      }
     }
+    return "";
   };
 
   date = (dt) => {
@@ -238,7 +246,8 @@ class Comment extends React.Component {
         return (
           <TimelineContent>
             <Typography variant="subtitle1">
-              {this.props.user.name} reopened this issue on {this.commentTime()}
+              {this.props.user && this.props.user.name} reopened this issue on{" "}
+              {this.commentTime()}
             </Typography>
           </TimelineContent>
         );
@@ -280,7 +289,7 @@ class Comment extends React.Component {
             {/* <TimelineConnector
               className={clsx({ [classes.connectorHidden]: this.props.first })}
             ></TimelineConnector> */}
-            <Avatar src={this.props.user.pic}></Avatar>
+            <Avatar src={this.props.user && this.props.user.pic}></Avatar>
             <TimelineConnector
               className={clsx({ [classes.connectorHidden]: this.props.last })}
             ></TimelineConnector>
@@ -355,6 +364,7 @@ export default connect(
     users: state.users,
     general: state.general,
     problem: state.problem,
+    comments: state.comments,
   }),
   {
     loadProblem: loadProblem,

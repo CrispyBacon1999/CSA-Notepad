@@ -1,11 +1,9 @@
 import firebase from "firebase/app";
 import "firebase/firestore";
-
-import { loadUser } from "./user";
+import { loadComment, fakeComment } from "./comment";
 
 const EDIT_REPLY = "EDIT_REPLY";
 const LOAD_PROBLEM = "LOAD_PROBLEM";
-const LOAD_COMMENT = "LOAD_COMMENT";
 const CLEAR_PROBLEM = "CLEAR_PROBLEM";
 const SEND_REPLY = "SEND_REPLY";
 const OPEN_PROBLEM = "OPEN_PROBLEM";
@@ -21,10 +19,11 @@ const defaultState = {
   title: "",
   createdBy: "",
 };
-var listeners = [];
+var listener = undefined;
 function unsubscribe() {
-  while (listeners.length > 0) {
-    listeners.pop()();
+  if (listener !== undefined) {
+    listener();
+    listener = undefined;
   }
 }
 
@@ -78,7 +77,7 @@ export function openProblem() {
               .collection("problems")
               .doc(getState().problem.problemID)
               .update({
-                comments: firebase.firestore.FieldValue.arrayUnion(doc),
+                comments: firebase.firestore.FieldValue.arrayUnion(doc.id),
               });
           });
       });
@@ -115,13 +114,14 @@ export function closeProblem() {
               .collection("problems")
               .doc(getState().problem.problemID)
               .update({
-                comments: firebase.firestore.FieldValue.arrayUnion(doc),
+                comments: firebase.firestore.FieldValue.arrayUnion(doc.id),
               });
           });
       });
   };
 }
 export function sendReply() {
+  // TODO: Check text to make sure it exists
   return (dispatch, getState) => {
     firebase
       .firestore()
@@ -140,7 +140,7 @@ export function sendReply() {
           .collection("problems")
           .doc(getState().problem.problemID)
           .update({
-            comments: firebase.firestore.FieldValue.arrayUnion(doc),
+            comments: firebase.firestore.FieldValue.arrayUnion(doc.id),
           })
           .then(() => {
             dispatch({
@@ -175,46 +175,25 @@ export function loadProblem(id) {
             type: prob.type,
             team: prob.team,
             createdBy: prob.createdBy,
+            comments: [id, ...prob.comments],
           },
         });
-        dispatch(loadUser(prob.createdBy));
-        for (var commentID in prob.comments) {
-          var unsub = firebase
-            .firestore()
-            .collection("comments")
-            .doc(commentID)
-            .onSnapshot((doc) => {
-              dispatch({
-                type: LOAD_COMMENT,
-                payload: {
-                  comments: comments.map((p, index) => ({
-                    ...p,
-                    key: `${id}-${index}`,
-                  })),
-                },
-              });
-            });
-          // Store the firestore listener so it can be unsubscribed from later
-          listeners.push(unsub);
-        }
-        let comments = {
-          [id]: {
+        prob.comments.forEach((commentID) => {
+          dispatch(loadComment(commentID));
+        });
+
+        dispatch(
+          fakeComment({
+            key: id,
             createdBy: prob.createdBy,
             text: prob.text,
             time: prob.time,
             base: true,
-          },
-        };
-
-        dispatch({
-          type: LOAD_COMMENT,
-          payload: {
-            comments: comments,
-          },
-        });
+          })
+        );
       });
     // Store the firestore listener so it can be unsubscribed from later
-    listeners.push(unsub);
+    listener = unsub;
   };
 }
 
@@ -231,12 +210,10 @@ export function reducer(state = defaultState, action) {
         type: action.payload.type,
         team: action.payload.team,
         createdBy: action.payload.createdBy,
+        comments: action.payload.comments,
       };
-    case LOAD_COMMENT:
-      return {
-        ...state,
-        comments: { ...state.comments, ...action.payload.comments },
-      };
+    case SEND_REPLY:
+      return { ...state, replyText: "" };
     case CLEAR_PROBLEM:
       return { ...defaultState };
     default:
