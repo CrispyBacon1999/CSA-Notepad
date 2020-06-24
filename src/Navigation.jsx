@@ -40,6 +40,7 @@ import {
   toggleActionsMenu,
   signIn,
 } from "./data/reducers/general";
+
 import { Themed } from "./theme";
 import { updateUserProfilePicture, loadUser } from "./data/reducers/user";
 const drawerWidth = 240;
