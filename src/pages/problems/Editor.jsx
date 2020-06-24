@@ -59,10 +59,18 @@ class Editor extends React.Component {
               }
               this.props.reply();
             }}
+            disabled={this.props.problem.replyText.length === 0}
           >
             Reply and {this.props.isOpen ? "Close" : "Reopen"}
           </Button>
-          <Button>Reply</Button>
+          <Button
+            disabled={this.props.problem.replyText.length === 0}
+            onClick={() => {
+              this.props.reply();
+            }}
+          >
+            Reply
+          </Button>
         </ButtonGroup>
       </div>
     );

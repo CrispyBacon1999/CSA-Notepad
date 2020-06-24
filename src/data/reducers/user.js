@@ -42,6 +42,7 @@ export function storeUser(user) {
       id: user.uid,
       displayName: user.displayName,
       photoURL: user.photoURL,
+      preferences: user.preferences,
     },
   };
 }
@@ -55,6 +56,7 @@ export function reducer(state = defaultState, action) {
           [action.payload.id]: {
             name: action.payload.displayName || "",
             pic: action.payload.photoURL || "",
+            preferences: action.payload.preferences || undefined,
           },
         };
       }

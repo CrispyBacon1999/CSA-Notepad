@@ -1,11 +1,9 @@
 import firebase from "firebase/app";
 import "firebase/firestore";
-
-import { loadUser } from "./user";
+import { loadComment, fakeComment } from "./comment";
 
 const EDIT_REPLY = "EDIT_REPLY";
 const LOAD_PROBLEM = "LOAD_PROBLEM";
-const LOAD_COMMENTS = "LOAD_COMMENTS";
 const CLEAR_PROBLEM = "CLEAR_PROBLEM";
 const SEND_REPLY = "SEND_REPLY";
 const OPEN_PROBLEM = "OPEN_PROBLEM";
@@ -21,6 +19,13 @@ const defaultState = {
   title: "",
   createdBy: "",
 };
+var listener = undefined;
+function unsubscribe() {
+  if (listener !== undefined) {
+    listener();
+    listener = undefined;
+  }
+}
 
 export function editReply(text) {
   return {
@@ -28,6 +33,16 @@ export function editReply(text) {
     payload: {
       text: text,
     },
+  };
+}
+
+export function deleteComment(commentID) {
+  return (dispatch, getState) => {
+    firebase
+      .firestore()
+      .collection("comments")
+      .doc(commentID)
+      .update({ deleted: true });
   };
 }
 
@@ -47,17 +62,23 @@ export function openProblem() {
         });
       })
       .then(() => {
-        // Send the closed message to display in comment list
         firebase
           .firestore()
-          .collection("problems")
-          .doc(getState().problem.problemID)
-          .update({
-            comments: firebase.firestore.FieldValue.arrayUnion({
-              type: "open",
-              createdBy: getState().general.signedInUser,
-              time: firebase.firestore.Timestamp.now(),
-            }),
+          .collection("comments")
+          .add({
+            type: "open",
+            createdBy: getState().general.signedInUser,
+            time: firebase.firestore.Timestamp.now(),
+            problemID: getState().problem.problemID,
+          })
+          .then((doc) => {
+            firebase
+              .firestore()
+              .collection("problems")
+              .doc(getState().problem.problemID)
+              .update({
+                comments: firebase.firestore.FieldValue.arrayUnion(doc.id),
+              });
           });
       });
   };
@@ -78,47 +99,67 @@ export function closeProblem() {
         });
       })
       .then(() => {
-        // Send the closed message to display in comment list
         firebase
           .firestore()
-          .collection("problems")
-          .doc(getState().problem.problemID)
-          .update({
-            comments: firebase.firestore.FieldValue.arrayUnion({
-              type: "close",
-              createdBy: getState().general.signedInUser,
-              time: firebase.firestore.Timestamp.now(),
-            }),
+          .collection("comments")
+          .add({
+            type: "close",
+            createdBy: getState().general.signedInUser,
+            time: firebase.firestore.Timestamp.now(),
+            problemID: getState().problem.problemID,
+          })
+          .then((doc) => {
+            firebase
+              .firestore()
+              .collection("problems")
+              .doc(getState().problem.problemID)
+              .update({
+                comments: firebase.firestore.FieldValue.arrayUnion(doc.id),
+              });
           });
       });
   };
 }
 export function sendReply() {
+  // TODO: Check text to make sure it exists
   return (dispatch, getState) => {
     firebase
       .firestore()
-      .collection("problems")
-      .doc(getState().problem.problemID)
-      .update({
-        comments: firebase.firestore.FieldValue.arrayUnion({
-          type: "text",
-          deleted: false,
-          createdBy: getState().general.signedInUser,
-          text: getState().problem.replyText,
-          time: firebase.firestore.Timestamp.now(),
-        }),
+      .collection("comments")
+      .add({
+        type: "text",
+        createdBy: getState().general.signedInUser,
+        time: firebase.firestore.Timestamp.now(),
+        text: getState().problem.replyText,
+        deleted: false,
+        problemID: getState().problem.problemID,
       })
-      .then(() => {
-        dispatch({
-          type: SEND_REPLY,
-        });
+      .then((doc) => {
+        firebase
+          .firestore()
+          .collection("problems")
+          .doc(getState().problem.problemID)
+          .update({
+            comments: firebase.firestore.FieldValue.arrayUnion(doc.id),
+          })
+          .then(() => {
+            dispatch({
+              type: SEND_REPLY,
+            });
+          });
       });
   };
 }
 
 export function loadProblem(id) {
-  return (dispatch) => {
-    firebase
+  // Before loading a new problem, unsubscribe from other listeners (prevents memory leaks)
+  unsubscribe();
+
+  return (dispatch, getState) => {
+    dispatch({
+      type: CLEAR_PROBLEM,
+    });
+    let unsub = firebase
       .firestore()
       .collection("problems")
       .doc(id)
@@ -134,27 +175,25 @@ export function loadProblem(id) {
             type: prob.type,
             team: prob.team,
             createdBy: prob.createdBy,
+            comments: [id, ...prob.comments],
           },
         });
-        dispatch(loadUser(prob.createdBy));
-        let comments = [
-          {
+        prob.comments.forEach((commentID) => {
+          dispatch(loadComment(commentID));
+        });
+
+        dispatch(
+          fakeComment({
+            key: id,
             createdBy: prob.createdBy,
             text: prob.text,
             time: prob.time,
-          },
-          ...prob.comments,
-        ];
-        dispatch({
-          type: LOAD_COMMENTS,
-          payload: {
-            comments: comments.map((p, index) => ({
-              ...p,
-              key: `${id}-${index}`,
-            })),
-          },
-        });
+            base: true,
+          })
+        );
       });
+    // Store the firestore listener so it can be unsubscribed from later
+    listener = unsub;
   };
 }
 
@@ -171,12 +210,10 @@ export function reducer(state = defaultState, action) {
         type: action.payload.type,
         team: action.payload.team,
         createdBy: action.payload.createdBy,
-      };
-    case LOAD_COMMENTS:
-      return {
-        ...state,
         comments: action.payload.comments,
       };
+    case SEND_REPLY:
+      return { ...state, replyText: "" };
     case CLEAR_PROBLEM:
       return { ...defaultState };
     default:

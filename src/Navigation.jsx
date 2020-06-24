@@ -40,8 +40,9 @@ import {
   toggleActionsMenu,
   signIn,
 } from "./data/reducers/general";
-import { updateUserProfilePicture, loadUser } from "./data/reducers/user";
 
+import { Themed } from "./theme";
+import { updateUserProfilePicture, loadUser } from "./data/reducers/user";
 const drawerWidth = 240;
 
 const styles = (theme) => ({
@@ -223,7 +224,7 @@ class Navigation extends React.Component {
         : this.props.users[this.props.general.signedInUser];
 
     return (
-      <div>
+      <Themed {...this.props}>
         {currentUser ? (
           <BrowserRouter>
             <div className={classes.root}>
@@ -344,7 +345,7 @@ class Navigation extends React.Component {
         ) : (
           <Login></Login>
         )}
-      </div>
+      </Themed>
     );
   }
 }
