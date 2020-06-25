@@ -263,7 +263,7 @@ class Comment extends React.Component {
         return (
           <TimelineContent>
             <Typography variant="subtitle1">
-              {this.props.user.name} closed this on {this.commentTime()}
+                {this.props.user && this.props.user.name} closed this on{" "}
             </Typography>
           </TimelineContent>
         );
@@ -273,6 +273,7 @@ class Comment extends React.Component {
   };
 
   separator = () => {
+              
     const { classes } = this.props;
     switch (this.props.type) {
       case "open":
