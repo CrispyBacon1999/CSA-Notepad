@@ -2,9 +2,9 @@ import firebase from "firebase/app";
 import "firebase/firestore";
 import { watchUser } from "./user";
 
-const LOAD_COMMENT = "LOAD_COMMENT";
+export const LOAD_COMMENT = "LOAD_COMMENT";
 
-const defaultState = {};
+export const defaultState = {};
 
 const listeners = {};
 
