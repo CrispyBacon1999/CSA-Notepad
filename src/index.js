@@ -8,9 +8,11 @@ import { firebaseConfig } from "./firebase";
 import { store } from "./data/store";
 import { Provider } from "react-redux";
 import "firebase/performance";
+import "firebase/analytics";
 
 firebase.initializeApp(firebaseConfig);
 firebase.performance();
+firebase.analytics();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {

@@ -4,13 +4,28 @@ const TOGGLE_DRAWER = "TOGGLE_DRAWER";
 const OPEN_ACTIONS = "OPEN_ACTIONS";
 const CLOSE_ACTIONS = "CLOSE_ACTIONS";
 const TOGGLE_ACTIONS = "TOGGLE_ACTIONS";
+const OPEN_PROFILE_NAME_DIALOG = "OPEN_PROFILE_NAME_DIALOG";
+const CLOSE_PROFILE_NAME_DIALOG = "CLOSE_PROFILE_NAME_DIALOG";
 const SIGN_IN = "SIGN_IN";
 
 const defaultState = {
   drawerOpen: false,
   actionsOpen: false,
   signedInUser: null,
+  profileNameDialog: false,
 };
+
+export function openProfileDialog() {
+  return {
+    type: OPEN_PROFILE_NAME_DIALOG,
+  };
+}
+
+export function closeProfileDialog() {
+  return {
+    type: CLOSE_PROFILE_NAME_DIALOG,
+  };
+}
 
 export function openActionsMenu() {
   return {
@@ -44,7 +59,6 @@ export function signIn(key) {
 }
 
 export function reducer(state = defaultState, action) {
-  console.log(action);
   switch (action.type) {
     case OPEN_ACTIONS:
       return { ...state, actionsOpen: true };
@@ -63,6 +77,16 @@ export function reducer(state = defaultState, action) {
       return {
         ...state,
         drawerOpen: !state.drawerOpen,
+      };
+    case OPEN_PROFILE_NAME_DIALOG:
+      return {
+        ...state,
+        profileNameDialog: true,
+      };
+    case CLOSE_PROFILE_NAME_DIALOG:
+      return {
+        ...state,
+        profileNameDialog: false,
       };
     case SIGN_IN:
       console.log("SIGN_IN");
