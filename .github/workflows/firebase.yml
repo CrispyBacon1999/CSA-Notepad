@@ -21,6 +21,14 @@ jobs:
         args: deploy --only hosting:prod
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+  firebase-functions:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-node@master
+      with:
+        node-version: '10.x'
+    - run: cd functions && npm install
     - uses: w9jds/firebase-action@master
       with:
         args: deploy --only functions

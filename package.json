@@ -7,7 +7,6 @@
     "dev:firebase": "firebase serve -p 4000",
     "dev:react": "react-scripts start",
     "build:prod": "react-scripts build",
-    "postinstall": "cd functions && npm i",
     "test": "react-scripts test --coverage",
     "test:ci": "react-scripts test --no-watchman"
   },
