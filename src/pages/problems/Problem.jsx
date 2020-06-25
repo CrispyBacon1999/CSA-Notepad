@@ -137,11 +137,10 @@ class Problem extends React.Component {
           <Grid item sm={1}>
             <Chip
               size="small"
-              style={{
-                backgroundColor: problem.open ? "#00d900" : "#d90000",
-                color: problem.open ? "black" : "white",
-              }}
               label={problem.open ? "Open" : "Resolved"}
+              className={
+                problem.open ? classes.avatarOpen : classes.avatarClose
+              }
               icon={
                 problem.open ? <ErrorOutlineIcon /> : <CheckCircleOutlineIcon />
               }
@@ -298,6 +297,7 @@ class Comment extends React.Component {
                 <InfoOutlinedIcon />
               )}
             </Avatar>
+
             <TimelineConnector
               className={clsx({ [classes.connectorHidden]: this.props.last })}
             ></TimelineConnector>
@@ -309,7 +309,13 @@ class Comment extends React.Component {
             {/* <TimelineConnector
               className={clsx({ [classes.connectorHidden]: this.props.first })}
             ></TimelineConnector> */}
-            <Avatar src={this.props.user && this.props.user.pic}></Avatar>
+            {this.props.user ? (
+              <Avatar src={this.props.user && this.props.user.pic}></Avatar>
+            ) : (
+              <Skeleton variant="circle">
+                <Avatar />
+              </Skeleton>
+            )}
             <TimelineConnector
               className={clsx({ [classes.connectorHidden]: this.props.last })}
             ></TimelineConnector>

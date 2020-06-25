@@ -5,18 +5,34 @@ const STORE_USER = "STORE_USER";
 
 const defaultState = {};
 
+const listeners = {};
+
 export function updateUserProfilePicture(id, url) {
   var userRef = firebase.firestore().collection("users").doc(id);
   userRef.update({ photoURL: url });
 }
 
+export function changeUserName(id, name) {
+  var userRef = firebase.firestore().collection("users").doc(id);
+  userRef.update({ displayName: name });
+}
+
+function subscribed(key) {
+  return key in listeners;
+}
+
 export function watchUser(id) {
   return function (dispatch) {
-    var userRef = firebase.firestore().collection("users").doc(id);
-    userRef.onSnapshot((snapshot) => {
-      console.log(snapshot.data());
-      dispatch(storeUser(snapshot.data()));
-    });
+    if (!subscribed(id)) {
+      var unsub = firebase
+        .firestore()
+        .collection("users")
+        .doc(id)
+        .onSnapshot((snapshot) => {
+          dispatch(storeUser({ uid: id, ...snapshot.data() }));
+        });
+      listeners[id] = unsub;
+    }
   };
 }
 

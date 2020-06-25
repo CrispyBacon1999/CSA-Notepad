@@ -29,7 +29,6 @@ import {
   Fade,
   CircularProgress,
   useMediaQuery,
-  useTheme,
 } from "@material-ui/core";
 import { SpeedDial, SpeedDialIcon, SpeedDialAction } from "@material-ui/lab";
 import Login from "./pages/Login";
@@ -41,10 +40,13 @@ import {
   toggleDrawer,
   toggleActionsMenu,
   signIn,
+  openProfileDialog,
+  closeProfileDialog,
 } from "./data/reducers/general";
 
 import { Themed } from "./theme";
-import { updateUserProfilePicture, loadUser } from "./data/reducers/user";
+import { updateUserProfilePicture, watchUser } from "./data/reducers/user";
+import ProfileInfoDialog from "./components/ProfileInfoDialog";
 const drawerWidth = 240;
 
 const styles = (theme) => ({
@@ -121,7 +123,7 @@ const styles = (theme) => ({
   actionsDot: {
     position: "fixed",
     bottom: theme.spacing(2),
-    right: theme.spacing(2),
+    right: theme.spacing(3),
   },
 });
 
@@ -224,12 +226,30 @@ class Navigation extends React.Component {
       this.props.general.signedInUser === undefined
         ? null
         : this.props.users[this.props.general.signedInUser];
+    if (
+      !this.props.general.profileNameDialog &&
+      currentUser &&
+      (currentUser.name === "" ||
+        currentUser.name === undefined ||
+        currentUser.name === null)
+    ) {
+      this.props.openProfileDialog();
+    } else if (
+      this.props.general.profileNameDialog &&
+      currentUser &&
+      currentUser.name !== "" &&
+      currentUser.name !== undefined &&
+      currentUser.name !== null
+    ) {
+      this.props.closeProfileDialog();
+    }
 
     return (
       <Themed {...this.props}>
         {currentUser ? (
           <BrowserRouter>
             <div className={classes.root}>
+              <ProfileInfoDialog />
               <CssBaseline />
               <AppBar
                 position="absolute"
@@ -365,8 +385,10 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = {
   toggleActionsMenu: toggleActionsMenu,
   toggleDrawer: toggleDrawer,
-  loadUser: loadUser,
+  loadUser: watchUser,
   signIn: signIn,
+  openProfileDialog: openProfileDialog,
+  closeProfileDialog: closeProfileDialog,
 };
 
 export default connect(

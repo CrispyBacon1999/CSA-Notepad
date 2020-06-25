@@ -1,6 +1,6 @@
 import firebase from "firebase/app";
 import "firebase/firestore";
-import { loadUser } from "./user";
+import { watchUser } from "./user";
 
 const LOAD_COMMENT = "LOAD_COMMENT";
 
@@ -9,7 +9,7 @@ const defaultState = {};
 const listeners = {};
 
 function subscribed(key) {
-  return key in Object.keys(listeners);
+  return key in listeners;
 }
 
 export function unsubscribe(key = undefined) {
@@ -24,7 +24,7 @@ export function unsubscribe(key = undefined) {
 
 export function fakeComment(data) {
   return function (dispatch) {
-    dispatch(loadUser(data.createdBy));
+    dispatch(watchUser(data.createdBy));
     dispatch({
       type: LOAD_COMMENT,
       payload: {
@@ -59,7 +59,7 @@ export function loadComment(key) {
               type: data.type,
             },
           });
-          dispatch(loadUser(data.createdBy));
+          dispatch(watchUser(data.createdBy));
         });
 
       listeners[key] = unsub;
