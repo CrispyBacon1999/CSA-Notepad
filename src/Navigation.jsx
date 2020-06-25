@@ -28,6 +28,7 @@ import {
   MenuItem,
   Fade,
   CircularProgress,
+  useMediaQuery,
 } from "@material-ui/core";
 import { SpeedDial, SpeedDialIcon, SpeedDialAction } from "@material-ui/lab";
 import Login from "./pages/Login";
@@ -39,10 +40,13 @@ import {
   toggleDrawer,
   toggleActionsMenu,
   signIn,
+  openProfileDialog,
+  closeProfileDialog,
 } from "./data/reducers/general";
 
 import { Themed } from "./theme";
-import { updateUserProfilePicture, loadUser } from "./data/reducers/user";
+import { updateUserProfilePicture, watchUser } from "./data/reducers/user";
+import ProfileInfoDialog from "./components/ProfileInfoDialog";
 const drawerWidth = 240;
 
 const styles = (theme) => ({
@@ -119,19 +123,21 @@ const styles = (theme) => ({
   actionsDot: {
     position: "fixed",
     bottom: theme.spacing(2),
-    right: theme.spacing(2),
+    right: theme.spacing(3),
   },
 });
 
 class Navigation extends React.Component {
   constructor(props) {
     super(props);
+    console.log("Constructor");
     this.state = {
       user: undefined,
       drawerOpen: false,
       actionsOpen: false,
     };
-
+  }
+  componentDidMount() {
     firebase
       .firestore()
       .enablePersistence()
@@ -144,8 +150,6 @@ class Navigation extends React.Component {
           console.warn("Not enough browser support for persistence.");
         }
       });
-  }
-  componentDidMount() {
     firebase.auth().onAuthStateChanged(this.authStateChanged);
   }
 
@@ -222,12 +226,30 @@ class Navigation extends React.Component {
       this.props.general.signedInUser === undefined
         ? null
         : this.props.users[this.props.general.signedInUser];
+    if (
+      !this.props.general.profileNameDialog &&
+      currentUser &&
+      (currentUser.name === "" ||
+        currentUser.name === undefined ||
+        currentUser.name === null)
+    ) {
+      this.props.openProfileDialog();
+    } else if (
+      this.props.general.profileNameDialog &&
+      currentUser &&
+      currentUser.name !== "" &&
+      currentUser.name !== undefined &&
+      currentUser.name !== null
+    ) {
+      this.props.closeProfileDialog();
+    }
 
     return (
       <Themed {...this.props}>
         {currentUser ? (
           <BrowserRouter>
             <div className={classes.root}>
+              <ProfileInfoDialog />
               <CssBaseline />
               <AppBar
                 position="absolute"
@@ -256,7 +278,7 @@ class Navigation extends React.Component {
                     <Avatar
                       src={
                         currentUser ? (
-                          currentUser.photoURL
+                          currentUser.pic
                         ) : (
                           <IconButton onClick={this.handleOpenAccountMenu}>
                             {currentUser ? (
@@ -283,7 +305,8 @@ class Navigation extends React.Component {
                   </Menu>
                 </Toolbar>
               </AppBar>
-              <Drawer
+              <ResponsiveDrawer
+                // variant={mobile ? "temporary" : "permanent"}
                 variant="permanent"
                 classes={{
                   paper: clsx(
@@ -302,7 +325,7 @@ class Navigation extends React.Component {
                 <List>{mainListItems}</List>
                 <Divider />
                 <List>{secondaryListItems}</List>
-              </Drawer>
+              </ResponsiveDrawer>
               <div className={classes.content}>
                 <div className={classes.appBarSpacer} />
                 <Switch>{routes({})}</Switch>
@@ -350,6 +373,11 @@ class Navigation extends React.Component {
   }
 }
 
+function ResponsiveDrawer(props) {
+  const mobile = useMediaQuery((theme) => theme.breakpoints.down("sm"));
+  return <Drawer {...props} variant={mobile ? "temporary" : "permanent"} />;
+}
+
 const mapStateToProps = (state) => ({
   users: state.users,
   general: state.general,
@@ -357,8 +385,10 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = {
   toggleActionsMenu: toggleActionsMenu,
   toggleDrawer: toggleDrawer,
-  loadUser: loadUser,
+  loadUser: watchUser,
   signIn: signIn,
+  openProfileDialog: openProfileDialog,
+  closeProfileDialog: closeProfileDialog,
 };
 
 export default connect(
