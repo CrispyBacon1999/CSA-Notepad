@@ -9,7 +9,16 @@ const SEND_REPLY = "SEND_REPLY";
 const OPEN_PROBLEM = "OPEN_PROBLEM";
 const CLOSE_PROBLEM = "CLOSE_PROBLEM";
 
-const defaultState = {
+export const actionTypes = {
+  EDIT_REPLY,
+  LOAD_PROBLEM,
+  CLEAR_PROBLEM,
+  SEND_REPLY,
+  OPEN_PROBLEM,
+  CLOSE_PROBLEM,
+};
+
+export const defaultState = {
   problemID: "",
   comments: [],
   open: true,
